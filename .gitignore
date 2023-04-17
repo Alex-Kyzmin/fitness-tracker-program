@@ -3,6 +3,12 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+.git/*
+.gitignore
+ venv/
+ .venv
+ .venv/
+
 # C extensions
 *.so
 
