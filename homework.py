@@ -4,6 +4,7 @@ from dataclasses import dataclass, asdict
 @dataclass
 class InfoMessage:
     """Датакласс сообщение о тренировке."""
+
     training_type: str
     duration: float
     distance: float
@@ -11,11 +12,11 @@ class InfoMessage:
     calories: float
 
     # Константа шаблона сообщения.
-    MESSAGE: list = ('Тип тренировки: {training_type}; '
-                     'Длительность: {duration:.3f} ч.; '
-                     'Дистанция: {distance:.3f} км; '
-                     'Ср. скорость: {speed:.3f} км/ч; '
-                     'Потрачено ккал: {calories:.3f}.')
+    MESSAGE: str = ('Тип тренировки: {training_type}; '
+                    'Длительность: {duration:.3f} ч.; '
+                    'Дистанция: {distance:.3f} км; '
+                    'Ср. скорость: {speed:.3f} км/ч; '
+                    'Потрачено ккал: {calories:.3f}.')
 
     def get_message(self) -> str:
         """Вывод сообщения о тренировке."""
@@ -134,11 +135,13 @@ class Swimming(Training):
 
 def read_package(workout_type: str, data: list[float]) -> Training:
     """Прочитать данные полученные от датчиков."""
-    dict_workout: dict[str, type] = {'SWM': Swimming,
-                                     'RUN': Running,
-                                     'WLK': SportsWalking, }
-    if workout_type in dict_workout.keys():
+    dict_workout: dict[str, type[Training]] = {'SWM': Swimming,
+                                               'RUN': Running,
+                                               'WLK': SportsWalking, }
+    if workout_type in dict_workout:
         return dict_workout[workout_type](*data)
+    else:
+        raise KeyError('Получены не корректные данные')
 
 
 def main(training: Training) -> None:
