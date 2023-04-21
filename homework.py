@@ -1,40 +1,42 @@
+from dataclasses import dataclass, asdict
+
+
+@dataclass
 class InfoMessage:
-    """Информационное сообщение о тренировке."""
-    def __init__(self, training_type: str, duration: float,
-                 distance: float, speed: float, calories: float) -> None:
-        self.training_type = training_type
-        self.duration = duration
-        self.distance = distance
-        self.speed = speed
-        self.calories = calories
+    """Датакласс сообщение о тренировке."""
+    training_type: str
+    duration: float
+    distance: float
+    speed: float
+    calories: float
+
+    # Константа шаблона сообщения.
+    MESSAGE: list = ('Тип тренировки: {training_type}; '
+                     'Длительность: {duration:.3f} ч.; '
+                     'Дистанция: {distance:.3f} км; '
+                     'Ср. скорость: {speed:.3f} км/ч; '
+                     'Потрачено ккал: {calories:.3f}.')
 
     def get_message(self) -> str:
-        """Cообщение о тренировке."""
-        message = (
-            f'Тип тренировки: {self.training_type};'
-            f' Длительность: {self.duration:.3f} ч.;'
-            f' Дистанция: {self.distance:.3f} км;'
-            f' Ср. скорость: {self.speed:.3f} км/ч;'
-            f' Потрачено ккал: {self.calories:.3f}.')
-        return message
+        """Вывод сообщения о тренировке."""
+        return self.MESSAGE.format(**asdict(self))
 
 
 class Training:
     """Базовый класс тренировки."""
-    # Константы базового класса.
     LEN_STEP: float = 0.65  # Длина шага при беге или ходьбе.
     M_IN_KM: int = 1000  # Коэффициент перевода значений из метров в километры.
     COEF_MIN: int = 60  # Коэффициент перевода значений из часов в минуты.
 
+    """Конструктор базового класса."""
     def __init__(self,
                  action: int,
                  duration: float,
                  weight: float,
                  ) -> None:
-        self.action = action
-        self.duration = duration
-        self.weight = weight
-        """Конструктор базового класса."""
+        self.action: int = action
+        self.duration: float = duration
+        self.weight: float = weight
 
     def get_distance(self) -> float:
         """Получить дистанцию в км."""
@@ -46,34 +48,33 @@ class Training:
 
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий."""
-        pass
+        raise NotImplementedError('Дочерний класс должен реализовать метод')
 
     def show_training_info(self) -> InfoMessage:
         """Вернуть информационное сообщение о выполненной тренировке."""
-        training_type = self.__class__.__name__
+        training_type = type(self).__name__
         distance = self.get_distance()
         speed = self.get_mean_speed()
         calories = self.get_spent_calories()
-        return InfoMessage(training_type, self.duration,
+        duration = self.duration
+        return InfoMessage(training_type, duration,
                            distance, speed, calories)
 
 
 class Running(Training):
     """Тренировка: бег."""
-    # Константы дочернего класса.
-    CALORIES_MEAN_SPEED_MULTIP = 18
-    CALORIES_MEAN_SPEED_SHIFT = 1.79
+    CALORIES_MEAN_SPEED_MULTIP: int = 18  # Коэффициент № 1
+    CALORIES_MEAN_SPEED_SHIFT: float = 1.79  # Коэффициент № 2
 
     def get_spent_calories(self) -> float:
         """Собственный метод дочернего класса для подсчета калории."""
         return ((self.CALORIES_MEAN_SPEED_MULTIP * self.get_mean_speed()
                 + self.CALORIES_MEAN_SPEED_SHIFT) * self.weight
-                / self.M_IN_KM * (self.duration * Training.COEF_MIN))
+                / self.M_IN_KM * (self.duration * self.COEF_MIN))
 
 
 class SportsWalking(Training):
     """Тренировка: спортивная ходьба."""
-    # Константы дочернего класса.
     RATIO_WALK_1: float = 0.035
     # Коэффициент для подсчета калорий при ходьбе № 1.
     RATIO_WALK_2: float = 0.029
@@ -83,14 +84,14 @@ class SportsWalking(Training):
     COEF_HEIGHT: int = 100
     # Коэффициент превода см в м.
 
+    """Конструктор дочернего класса - ходьба."""
     def __init__(self,
                  action: int,
                  duration: float,
                  weight: float,
                  height: float) -> None:
         super().__init__(action, duration, weight)
-        self.height = height
-        """Конструктор дочернего класса."""
+        self.height: float = height
 
     def get_spent_calories(self) -> float:
         """Собственный метод дочернего класса для подсчета калории."""
@@ -101,13 +102,14 @@ class SportsWalking(Training):
 
 class Swimming(Training):
     """Тренировка: плавание."""
-    # Константы дочернего класса.
     LEN_STEP: float = 1.38
+    # Константа длины гребка.
     RATIO_SWIM_1: float = 1.1
     # Коэффициент для подсчета калорий в плавании № 1.
     RATIO_SWIM_2: int = 2
     # Коэффициент для подсчета калорий в плавании № 2.
 
+    """Конструктор дочернего класса - плавание."""
     def __init__(self,
                  action: int,
                  duration: float,
@@ -115,9 +117,8 @@ class Swimming(Training):
                  length_pool: int,
                  count_pool: int) -> None:
         super().__init__(action, duration, weight)
-        self.length_pool: int = length_pool
+        self.length_pool: float = length_pool
         self.count_pool: int = count_pool
-        """Конструктор базового класса."""
 
     def get_mean_speed(self) -> float:
         """Собственный метод дочернего класса для подсчета скорости."""
@@ -126,24 +127,27 @@ class Swimming(Training):
 
     def get_spent_calories(self) -> float:
         """Собственный метод дочернего класса для подсчета калории."""
-        return (self.get_mean_speed() + self.RATIO_SWIM_1
-                ) * self.RATIO_SWIM_2 * self.weight * self.duration
+        multip_data = self.RATIO_SWIM_2 * self.weight * self.duration
+        amount_data = self.get_mean_speed() + self.RATIO_SWIM_1
+        return amount_data * multip_data
 
 
-def read_package(workout_type: str, data: list) -> Training:
+def read_package(workout_type: str, data: list[float]) -> Training:
     """Прочитать данные полученные от датчиков."""
-    dict_workout = {
-        'SWM': Swimming,
-        'RUN': Running,
-        'WLK': SportsWalking}
-    if workout_type in dict_workout:
+    dict_workout: dict[str, type] = {'SWM': Swimming,
+                                     'RUN': Running,
+                                     'WLK': SportsWalking, }
+    if workout_type in dict_workout.keys():
         return dict_workout[workout_type](*data)
+    try:
+        workout_type not in dict_workout.keys()
+    finally:
+        print('Получены не корректные данные')
 
 
 def main(training: Training) -> None:
     """Главная функция."""
-    info = training.show_training_info()
-    print(info.get_message())
+    print(training.show_training_info().get_message())
 
 
 if __name__ == '__main__':
