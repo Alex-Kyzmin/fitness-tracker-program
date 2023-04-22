@@ -140,8 +140,6 @@ def read_package(workout_type: str, data: list[float]) -> Training:
                                                'WLK': SportsWalking, }
     if workout_type in dict_workout:
         return dict_workout[workout_type](*data)
-    else:
-        raise KeyError('Получены не корректные данные')
 
 
 def main(training: Training) -> None:
