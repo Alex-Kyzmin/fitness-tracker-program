@@ -138,8 +138,9 @@ def read_package(workout_type: str, data: list[float]) -> Training:
     dict_workout: dict[str, type[Training]] = {'SWM': Swimming,
                                                'RUN': Running,
                                                'WLK': SportsWalking, }
-    if workout_type in dict_workout:
-        return dict_workout[workout_type](*data)
+    if workout_type not in dict_workout:
+        raise KeyError('Получены не корректные данные')
+    return dict_workout[workout_type](*data)
 
 
 def main(training: Training) -> None:
